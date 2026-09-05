@@ -1,0 +1,168 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profiles",
+      "description": "User accounts with roles (admin, user), departments, and status",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "departmentId": { "type": "string" },
+        "position": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "telegramId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "blocked"] },
+        "equipmentCount": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "role", "status"]
+    },
+    "departments": {
+      "title": "Departments",
+      "description": "Organizational departments",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "code": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "equipment_types": {
+      "title": "Equipment Types",
+      "description": "Categories of equipment e.g. Kompyuter, Printer, etc.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "icon": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    "equipment": {
+      "title": "Equipment Items",
+      "description": "Registered inventory equipment items",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "typeId": { "type": "string" },
+        "typeName": { "type": "string" },
+        "name": { "type": "string" },
+        "brand": { "type": "string" },
+        "model": { "type": "string" },
+        "serialNumber": { "type": "string" },
+        "inventoryNumber": { "type": "string" },
+        "manufactureYear": { "type": "number" },
+        "status": { "type": "string" },
+        "ownerType": { "type": "string" },
+        "departmentId": { "type": "string" },
+        "departmentName": { "type": "string" },
+        "ownerUserId": { "type": "string" },
+        "currentUserId": { "type": "string" },
+        "currentUserName": { "type": "string" },
+        "userPosition": { "type": "string" },
+        "userPhotoUrl": { "type": "string" },
+        "locationRoom": { "type": "string" },
+        "locationAddress": { "type": "string" },
+        "notes": { "type": "string" },
+        "signatureUrl": { "type": "string" },
+        "signedBy": { "type": "string" },
+        "signedAt": { "type": "string" },
+        "images": { "type": "array" },
+        "isBroken": { "type": "boolean" },
+        "isDeleted": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["code", "typeId", "status", "createdBy"]
+    },
+    "equipment_failures": {
+      "title": "Equipment Failures",
+      "description": "Records of broken or malfunctioning equipment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "equipmentId": { "type": "string" },
+        "equipmentCode": { "type": "string" },
+        "failureDate": { "type": "string" },
+        "failureReason": { "type": "string" },
+        "failureType": { "type": "string" },
+        "reportedBy": { "type": "string" },
+        "reportedByName": { "type": "string" },
+        "images": { "type": "array" },
+        "notes": { "type": "string" }
+      },
+      "required": ["equipmentId", "failureDate", "failureReason"]
+    },
+    "equipment_history": {
+      "title": "Equipment History Timeline",
+      "description": "Audit trail of changes for each equipment item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "equipmentId": { "type": "string" },
+        "action": { "type": "string" },
+        "performedBy": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["equipmentId", "action", "performedBy"]
+    },
+    "audit_logs": {
+      "title": "System Audit Logs",
+      "description": "System-wide action logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "action": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["userId", "action", "timestamp"]
+    },
+    "notifications": {
+      "title": "System Notifications",
+      "description": "User & Admin notifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "message"]
+    },
+    "tech_support": {
+      "title": "Tech Support Requests",
+      "description": "IT helpdesk requests submitted by staff",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "applicantName": { "type": "string" },
+        "applicantPhone": { "type": "string" },
+        "departmentName": { "type": "string" },
+        "roomNumber": { "type": "string" },
+        "equipmentName": { "type": "string" },
+        "equipmentCode": { "type": "string" },
+        "issueCategory": { "type": "string" },
+        "description": { "type": "string" },
+        "urgency": { "type": "string" },
+        "status": { "type": "string" },
+        "resolutionNotes": { "type": "string" },
+        "assignedTechnician": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["applicantName", "description", "status"]
+    }
+  },
+  "security": {
+    "roles": ["admin", "user"]
+  }
+}

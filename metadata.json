@@ -1,0 +1,6 @@
+{
+  "name": "Jihozlarni Hisobga Olish va Nazorat Platformasi",
+  "description": "Jihozlarni hisobga olish, biriktirish, elektron imzo, nosozliklarni va audit tarixini nazorat qilish va boshqarish tizimi",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
