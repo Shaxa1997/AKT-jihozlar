@@ -214,8 +214,13 @@ export async function createNotification(
 
 // Fetch Departments
 export async function getDepartments(): Promise<Department[]> {
-  const snap = await getDocs(collection(db, COLLECTIONS.DEPARTMENTS));
-  return snap.docs.map(doc => doc.data() as Department);
+  try {
+    const snap = await getDocs(collection(db, COLLECTIONS.DEPARTMENTS));
+    return snap.docs.map(doc => doc.data() as Department);
+  } catch (err) {
+    console.warn("Firestore getDepartments error:", err);
+    return [];
+  }
 }
 
 // Save/Update Department
@@ -235,8 +240,13 @@ export async function saveDepartment(dept: Partial<Department>): Promise<Departm
 
 // Fetch Equipment Types
 export async function getEquipmentTypes(): Promise<EquipmentTypeItem[]> {
-  const snap = await getDocs(collection(db, COLLECTIONS.EQUIPMENT_TYPES));
-  return snap.docs.map(doc => doc.data() as EquipmentTypeItem);
+  try {
+    const snap = await getDocs(collection(db, COLLECTIONS.EQUIPMENT_TYPES));
+    return snap.docs.map(doc => doc.data() as EquipmentTypeItem);
+  } catch (err) {
+    console.warn("Firestore getEquipmentTypes error:", err);
+    return [];
+  }
 }
 
 // Save/Update Equipment Type
@@ -255,17 +265,27 @@ export async function saveEquipmentType(typeItem: Partial<EquipmentTypeItem>): P
 
 // Users Service
 export async function getUsers(): Promise<UserProfile[]> {
-  const snap = await getDocs(collection(db, COLLECTIONS.USERS));
-  return snap.docs.map(doc => doc.data() as UserProfile);
+  try {
+    const snap = await getDocs(collection(db, COLLECTIONS.USERS));
+    return snap.docs.map(doc => doc.data() as UserProfile);
+  } catch (err) {
+    console.warn("Firestore getUsers error:", err);
+    return [];
+  }
 }
 
 export async function getUserById(uid: string): Promise<UserProfile | null> {
-  const docRef = doc(db, COLLECTIONS.USERS, uid);
-  const snap = await getDoc(docRef);
-  if (snap.exists()) {
-    return snap.data() as UserProfile;
+  try {
+    const docRef = doc(db, COLLECTIONS.USERS, uid);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      return snap.data() as UserProfile;
+    }
+    return null;
+  } catch (err) {
+    console.warn("Firestore getUserById error:", err);
+    return null;
   }
-  return null;
 }
 
 export async function saveUser(user: UserProfile): Promise<UserProfile> {
@@ -473,67 +493,72 @@ export async function getEquipmentList(
   filters?: EquipmentFilterOptions,
   currentUser?: UserProfile
 ): Promise<Equipment[]> {
-  const eqSnap = await getDocs(collection(db, COLLECTIONS.EQUIPMENT));
-  let list = eqSnap.docs.map(doc => doc.data() as Equipment).filter(e => !e.isDeleted);
+  try {
+    const eqSnap = await getDocs(collection(db, COLLECTIONS.EQUIPMENT));
+    let list = eqSnap.docs.map(doc => doc.data() as Equipment).filter(e => !e.isDeleted);
 
-  // If user is non-admin, default filter to items assigned to user or created by user
-  if (currentUser && currentUser.role !== 'admin') {
-    list = list.filter(e => e.currentUserId === currentUser.uid || e.createdBy === currentUser.uid);
+    // If user is non-admin, default filter to items assigned to user or created by user
+    if (currentUser && currentUser.role !== 'admin') {
+      list = list.filter(e => e.currentUserId === currentUser.uid || e.createdBy === currentUser.uid);
+    }
+
+    if (!filters) return list;
+
+    if (filters.search) {
+      const s = filters.search.toLowerCase().trim();
+      list = list.filter(e => 
+        e.code.toLowerCase().includes(s) ||
+        e.name.toLowerCase().includes(s) ||
+        e.currentUserName.toLowerCase().includes(s) ||
+        (e.brand && e.brand.toLowerCase().includes(s)) ||
+        (e.model && e.model.toLowerCase().includes(s)) ||
+        (e.serialNumber && e.serialNumber.toLowerCase().includes(s))
+      );
+    }
+
+    if (filters.typeId) {
+      list = list.filter(e => e.typeId === filters.typeId);
+    }
+
+    if (filters.status) {
+      list = list.filter(e => e.status === filters.status);
+    }
+
+    if (filters.departmentId) {
+      list = list.filter(e => e.departmentId === filters.departmentId);
+    }
+
+    if (filters.userId) {
+      list = list.filter(e => e.currentUserId === filters.userId);
+    }
+
+    if (filters.manufactureYear) {
+      list = list.filter(e => e.manufactureYear === Number(filters.manufactureYear));
+    }
+
+    if (filters.isBrokenOnly) {
+      list = list.filter(e => e.isBroken || e.status === 'ishdan_chiqqan');
+    }
+
+    // Sorting
+    if (filters.sortBy === 'oldest') {
+      list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    } else if (filters.sortBy === 'code') {
+      list.sort((a, b) => a.code.localeCompare(b.code));
+    } else if (filters.sortBy === 'year') {
+      list.sort((a, b) => b.manufactureYear - a.manufactureYear);
+    } else if (filters.sortBy === 'status') {
+      list.sort((a, b) => a.status.localeCompare(b.status));
+    } else {
+      // Default newest
+      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
+    return list;
+  } catch (err) {
+    console.warn("Firestore getEquipmentList error:", err);
+    return [];
   }
-
-  if (!filters) return list;
-
-  if (filters.search) {
-    const s = filters.search.toLowerCase().trim();
-    list = list.filter(e => 
-      e.code.toLowerCase().includes(s) ||
-      e.name.toLowerCase().includes(s) ||
-      e.currentUserName.toLowerCase().includes(s) ||
-      (e.brand && e.brand.toLowerCase().includes(s)) ||
-      (e.model && e.model.toLowerCase().includes(s)) ||
-      (e.serialNumber && e.serialNumber.toLowerCase().includes(s))
-    );
-  }
-
-  if (filters.typeId) {
-    list = list.filter(e => e.typeId === filters.typeId);
-  }
-
-  if (filters.status) {
-    list = list.filter(e => e.status === filters.status);
-  }
-
-  if (filters.departmentId) {
-    list = list.filter(e => e.departmentId === filters.departmentId);
-  }
-
-  if (filters.userId) {
-    list = list.filter(e => e.currentUserId === filters.userId);
-  }
-
-  if (filters.manufactureYear) {
-    list = list.filter(e => e.manufactureYear === Number(filters.manufactureYear));
-  }
-
-  if (filters.isBrokenOnly) {
-    list = list.filter(e => e.isBroken || e.status === 'ishdan_chiqqan');
-  }
-
-  // Sorting
-  if (filters.sortBy === 'oldest') {
-    list.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  } else if (filters.sortBy === 'code') {
-    list.sort((a, b) => a.code.localeCompare(b.code));
-  } else if (filters.sortBy === 'year') {
-    list.sort((a, b) => b.manufactureYear - a.manufactureYear);
-  } else if (filters.sortBy === 'status') {
-    list.sort((a, b) => a.status.localeCompare(b.status));
-  } else {
-    // Default newest
-    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }
-
-  return list;
 }
 
 export async function getEquipmentById(id: string): Promise<Equipment | null> {
